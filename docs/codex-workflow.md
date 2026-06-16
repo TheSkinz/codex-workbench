@@ -10,6 +10,10 @@
 6. Review the diff before committing.
 7. Record reusable prompts or workflow improvements.
 
+## First successful setup
+
+Codex was verified from the repo root and confirmed it loaded the repo `AGENTS.md` instructions and `.codex/config.toml` configuration.
+
 ## Read-only inspection workflow
 
 Use read-only mode when exploring unfamiliar repositories or testing prompts.
