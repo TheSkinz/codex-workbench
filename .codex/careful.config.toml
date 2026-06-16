@@ -1,0 +1,13 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = false
+
+[shell_environment_policy]
+inherit = "core"
+
+model_reasoning_effort = "high"
+model_reasoning_summary = "concise"
+
+project_doc_max_bytes = 32768
