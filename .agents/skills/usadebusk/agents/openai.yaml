@@ -1,0 +1,4 @@
+interface:
+  display_name: "USADeBusk"
+  short_description: "USADeBusk estimating, SOP, equipment, and field workflows"
+  default_prompt: "Use $usadebusk to help with a USADeBusk estimating, SOP, equipment, operations, or field execution task."
