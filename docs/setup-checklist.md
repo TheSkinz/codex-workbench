@@ -11,7 +11,7 @@
 
 - [ ] If named profiles are needed, copy the examples in `examples/codex-home/` to the intended `CODEX_HOME`.
 - [ ] Set `CODEX_HOME` explicitly before invoking `codex --profile <name>`.
-- [ ] Run `scripts/verify-codex-setup.ps1` from the target repository.
+- [ ] Run `scripts/verify-codex-setup.ps1 -WorkingDirectory <target-repository> -Profile <name>` from the workbench.
 - [ ] Confirm the reported active instructions, sandbox mode, approval policy, network access, and writable roots.
 - [ ] Treat a profile as untrusted until this check has been performed in the real local environment.
 

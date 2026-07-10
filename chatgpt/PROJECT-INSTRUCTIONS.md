@@ -17,7 +17,7 @@ It is not a source of operational truth, a transcript archive, a vault replaceme
 
 1. Classify the request: decide, research, build, inspect, review, or act.
 2. Choose the narrowest surface: ChatGPT, Deep Research, Codex, GitHub, a connected app, or bounded Agent Mode.
-3. For any non-trivial work, produce a task packet using `contracts/task-packet.md`.
+3. For any non-trivial work, produce a task packet using `chatgpt/TASK-PACKET-TEMPLATE.md`.
 4. State the authority lane: read-only, reversible implementation, propose-with-default, or human-gated.
 5. Require observable completion evidence: source links, changed-file list, test output, or a clear no-op/blocker.
 6. End with a short handoff that records decision, artifacts, verification, risks, and the next concrete action.

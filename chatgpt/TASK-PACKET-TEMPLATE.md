@@ -4,9 +4,9 @@ Use for implementation, research that changes a decision, repository review, or 
 
 ## Objective
 
-- **Outcome:** 
-- **Why now:** 
-- **Non-goals:** 
+- **Outcome:**
+- **Why now:**
+- **Non-goals:**
 
 ## Authoritative inputs
 
@@ -18,8 +18,8 @@ Use for implementation, research that changes a decision, repository review, or 
 
 - **Execution surface:** ChatGPT / Deep Research / Codex / GitHub / Connected app / Agent Mode
 - **Authority lane:** Read-only / Reversible implementation / Propose-with-default / Human-gated
-- **Allowed actions:** 
-- **Blocked actions:** 
+- **Allowed actions:**
+- **Blocked actions:**
 
 ## Acceptance checks
 
@@ -31,7 +31,7 @@ Use for implementation, research that changes a decision, repository review, or 
 
 ## Deliverable and handoff
 
-- **Expected artifact(s):** 
-- **Verification evidence:** 
-- **Decision required from user:** None / 
-- **Next concrete action:** 
+- **Expected artifact(s):**
+- **Verification evidence:**
+- **Decision required from user:** None /
+- **Next concrete action:**

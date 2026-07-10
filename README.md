@@ -26,7 +26,7 @@ Never store customer information, internal rates, operational records, credentia
 1. Add `chatgpt/PROJECT-INSTRUCTIONS.md` to the existing AI Workflow & Agent Architecture Project.
 2. Use `chatgpt/TASK-PACKET-TEMPLATE.md` for any task that crosses a tool boundary.
 3. Configure a target repository with its own `AGENTS.md` and `.codex/config.toml`.
-4. Run `scripts/verify-codex-setup.ps1` from the target repository before trusting a configuration.
+4. Run `scripts/verify-codex-setup.ps1` with the target repository supplied through `-WorkingDirectory` before trusting a configuration.
 5. Promote a reusable workflow only after it passes the evaluation rule in `docs/evaluation.md`.
 
 ## Repository layout

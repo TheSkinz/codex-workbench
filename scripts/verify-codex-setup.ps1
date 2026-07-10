@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [string]$WorkingDirectory = (Get-Location).Path
+    [string]$WorkingDirectory = (Get-Location).Path,
+    [string]$Profile
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,7 +13,13 @@ Summarize the current instructions and configuration you loaded. Report active A
 
 Push-Location $WorkingDirectory
 try {
-    & $codex.Source --ask-for-approval never $prompt
+    $arguments = @("exec", "--ephemeral", "--ask-for-approval", "never")
+    if ($Profile) {
+        $arguments += @("--profile", $Profile)
+    }
+    $arguments += $prompt
+
+    & $codex.Source @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "Codex exited with code $LASTEXITCODE."
     }
