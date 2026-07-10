@@ -1,59 +1,30 @@
 # Codex Setup Checklist
 
-## Phase 1: Baseline repo setup
+## Project defaults
 
-- [ ] README explains the repo purpose.
-- [ ] `AGENTS.md` exists at the repo root.
-- [ ] `.codex/config.toml` exists.
-- [ ] `.codex/readonly.config.toml` exists.
-- [ ] `.codex/careful.config.toml` exists.
-- [ ] Prompt templates are documented.
-- [ ] Workflow notes are documented.
-- [ ] No secrets or private data are present.
+- [ ] The target repository has a concise, repository-specific `AGENTS.md`.
+- [ ] The target repository has `.codex/config.toml` only for settings that should travel with the repository.
+- [ ] Network access is disabled by default unless the task requires it.
+- [ ] No secrets, customer data, or runtime-specific private settings are committed.
 
-## Phase 2: Verify Codex config
+## Profile verification
 
-- [ ] Clone the repo locally.
-- [ ] Start Codex from the repo root.
-- [ ] Ask Codex which instruction files are active.
-- [ ] Verify sandbox mode.
-- [ ] Verify approval policy.
-- [ ] Verify network access is disabled unless explicitly needed.
+- [ ] If named profiles are needed, copy the examples in `examples/codex-home/` to the intended `CODEX_HOME`.
+- [ ] Set `CODEX_HOME` explicitly before invoking `codex --profile <name>`.
+- [ ] Run `scripts/verify-codex-setup.ps1` from the target repository.
+- [ ] Confirm the reported active instructions, sandbox mode, approval policy, network access, and writable roots.
+- [ ] Treat a profile as untrusted until this check has been performed in the real local environment.
 
-Suggested prompt:
+## Task execution
 
-```text
-Summarize the active Codex instructions and configuration you loaded. Report active AGENTS.md files, sandbox mode, approval policy, network access, risky config values, and any instruction conflicts. Do not edit files.
-```
+- [ ] Use a task packet for non-trivial work.
+- [ ] Inspect authoritative inputs before editing.
+- [ ] Keep the diff within the packet's allowed actions.
+- [ ] Run the narrowest relevant validation.
+- [ ] Review the diff before committing or publishing.
 
-## Phase 3: Test read-only inspection
+## Reuse
 
-- [ ] Run read-only mode.
-- [ ] Ask Codex to inspect the repo.
-- [ ] Confirm no files are modified.
-
-```bash
-codex --profile readonly
-```
-
-## Phase 4: Test small edit
-
-- [ ] Ask Codex to make one small documentation edit.
-- [ ] Review the diff.
-- [ ] Run validation if applicable.
-- [ ] Commit only after review.
-
-## Phase 5: Add repo-specific AGENTS.md to real projects
-
-- [ ] Choose one real repository.
-- [ ] Ask Codex to inspect it read-only.
-- [ ] Generate a minimal repo-specific `AGENTS.md`.
-- [ ] Review and edit manually.
-- [ ] Keep the file short.
-
-## Phase 6: Evaluate GitHub/Codex review integration later
-
-- [ ] Use manual Codex review first.
-- [ ] Enable automated review only after manual review is useful.
-- [ ] Scope integration to selected repositories.
-- [ ] Avoid broad automation until rules are stable.
+- [ ] Add a reusable prompt, tool, connector, or pack only after three successful real uses.
+- [ ] Record a verification method and known limits.
+- [ ] Keep generic harness artifacts separate from canonical domain knowledge.
