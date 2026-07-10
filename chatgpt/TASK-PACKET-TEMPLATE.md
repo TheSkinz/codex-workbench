@@ -33,5 +33,5 @@ Use for implementation, research that changes a decision, repository review, or 
 
 - **Expected artifact(s):** 
 - **Verification evidence:** 
-- **Decision required from Jesse:** None / 
+- **Decision required from user:** None / 
 - **Next concrete action:** 
