@@ -1,37 +1,34 @@
-# Codex Workbench Instructions
+# Harness Workbench Instructions
 
 ## Purpose
 
-This repository is a safe sandbox for configuring, testing, and documenting Codex workflows.
+Maintain a small, public-safe adapter for ChatGPT and Codex. The repository contains portable routing, task-packet, configuration, and verification patterns—not domain knowledge or a second operating system.
 
-## Default behavior
+## Boundaries
 
-- Inspect relevant files before editing.
-- Summarize the intended change before making edits.
-- Prefer small, reviewable diffs.
-- Do not add dependencies unless explicitly approved.
-- Do not introduce build systems, package managers, generated files, or automation unless explicitly requested.
-- Do not modify unrelated files.
-- After edits, summarize changed files, validation performed, and remaining risks.
+- Canonical domain knowledge belongs in its governing repository or vault.
+- Generic gates and executable evaluations belong in `leverage`.
+- This repository may contain only sanitized, runtime-neutral examples.
+- Never add customer information, private reference packs, rates, credentials, source documents, or copied vault material.
+- Do not create standing dashboards, transcript archives, broad automation, or dependency-heavy frameworks here.
 
-## Safety
+## Before changing anything
 
-- Never add secrets, tokens, credentials, API keys, cookies, private keys, or private data.
-- Do not print secrets if discovered.
-- Do not run destructive commands unless explicitly authorized.
-- Do not push to GitHub without explicit approval.
-- Keep network access disabled unless the task explicitly requires it.
+1. Inspect relevant files and identify the owning layer.
+2. State the intended change and the acceptance check.
+3. Keep the diff small and limited to the requested adapter behavior.
+4. Verify current Codex behavior from official documentation before changing configuration semantics.
+5. Use `docs/pack-release.md` for any runtime-pack release or removal.
 
-## Review behavior
+## Configuration
 
-- Focus on correctness, safety, clarity, maintainability, and regression risk.
-- Avoid style nitpicks unless they affect readability or violate existing formatting.
-- Prefer actionable findings over broad commentary.
+- `.codex/config.toml` is the repository's project configuration.
+- Named profiles are loaded from `CODEX_HOME`, not from arbitrary project files. Keep examples in `examples/codex-home/`; do not claim they are active until the runtime smoke check proves it.
+- Do not enable network access by default.
 
 ## Definition of done
 
-- Files are created or updated as requested.
-- Markdown is clear and practical.
-- TOML files are syntactically valid.
-- No secrets or private data are introduced.
-- Changes are summarized clearly.
+- Changed files are public-safe and source-neutral.
+- The relevant template, schema, or documentation stays internally consistent.
+- A narrow validation or smoke-check instruction is recorded.
+- The final summary names changed files, evidence, remaining risk, and any runtime test the user must run locally.
