@@ -1,41 +1,51 @@
-# Codex Workbench
+# ChatGPT + Codex Harness Workbench
 
-This repository is a private workbench for configuring, testing, and documenting Codex workflows.
+A small, versioned adapter for routing work between ChatGPT, Deep Research, Codex, GitHub, and connected tools.
 
-Use it for:
+This repository is **not** a knowledge vault, a customer-data store, or a generic agent platform. It exists to keep the cross-tool layer small, testable, and portable.
 
-- testing Codex workflows
-- maintaining reusable prompts
-- experimenting with `AGENTS.md` behavior
-- storing safe Codex config examples
-- documenting setup and rollout steps
+## Architecture boundary
+
+| System | Owns |
+|---|---|
+| Canonical vault / domain repository | Domain knowledge, operational policy, source history |
+| `leverage` | Generic gates, schemas, evaluation logic, and experiments |
+| This workbench | ChatGPT task packets, routing rules, Codex configuration examples, setup verification |
+| ChatGPT | Framing, research, route selection, task-packet drafting, evidence-based QA |
+
+Do not use this repository as a second copy of domain instructions. Release sanitized, minimal runtime packs only through the protocol in `docs/pack-release.md`.
 
 ## Safety boundary
 
-Do not store secrets, tokens, credentials, API keys, cookies, private keys, production code, customer data, or other private data in this repository.
+Assume this repository may be visible outside your private environment.
 
-This repo should stay lightweight: plain Markdown, TOML, and workflow notes only. Avoid adding dependencies, package managers, generated files, CI/CD automation, or build systems unless there is a specific reason and the change is reviewed first.
+Never store customer information, internal rates, operational records, credentials, tokens, private source documents, proprietary reference packs, or personal data here. Keep public-safe examples generic.
 
-## Suggested use
+## Start here
 
-1. Clone the repo locally.
-2. Open it with Codex CLI or the Codex IDE extension.
-3. Start in read-only mode when testing new prompts.
-4. Use the prompt templates in `docs/prompt-templates.md`.
-5. Record useful workflow improvements in `docs/codex-workflow.md`.
+1. Add `chatgpt/PROJECT-INSTRUCTIONS.md` to the existing AI Workflow & Agent Architecture Project.
+2. Use `chatgpt/TASK-PACKET-TEMPLATE.md` for any task that crosses a tool boundary.
+3. Configure a target repository with its own `AGENTS.md` and `.codex/config.toml`.
+4. Run `scripts/verify-codex-setup.ps1` from the target repository before trusting a configuration.
+5. Promote a reusable workflow only after it passes the evaluation rule in `docs/evaluation.md`.
 
-## Repository structure
+## Repository layout
 
 ```text
 codex-workbench/
-├─ README.md
 ├─ AGENTS.md
-├─ .codex/
-│  ├─ config.toml
-│  ├─ readonly.config.toml
-│  └─ careful.config.toml
-└─ docs/
-   ├─ codex-workflow.md
-   ├─ prompt-templates.md
-   └─ setup-checklist.md
+├─ .codex/config.toml              # Project defaults only
+├─ chatgpt/                        # Project instructions and task packet template
+├─ contracts/                      # Portable task-packet contract
+├─ docs/                           # Routing, setup, evaluation, and pack-release guidance
+├─ examples/codex-home/            # Explicit CODEX_HOME profile examples
+└─ scripts/verify-codex-setup.ps1  # Runtime configuration smoke check
 ```
+
+## Design rules
+
+- One canonical owner per kind of information.
+- Prefer a small task packet over a large context dump.
+- Treat test output, diffs, and source links as completion evidence.
+- Use the least-powerful tool that can complete the task safely.
+- Do not add a connector, plugin, prompt, or process until real use proves its value.
