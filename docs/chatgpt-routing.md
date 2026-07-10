@@ -4,7 +4,7 @@ The ChatGPT layer is intentionally thin. It makes a good routing and synthesis d
 
 ## Install in ChatGPT
 
-Use the contents of `chatgpt/PROJECT-INSTRUCTIONS.md` as the instructions for the existing AI Workflow & Agent Architecture Project. Add `chatgpt/TASK-PACKET-TEMPLATE.md` as a project file if you want the exact format available in every thread.
+Use the contents of `chatgpt/PROJECT-INSTRUCTIONS.md` as the instructions for your existing AI-workflow Project. Add `chatgpt/TASK-PACKET-TEMPLATE.md` as a project file if you want the exact format available in every thread.
 
 Do not create a second generic harness Project. Keep domain work in its own bounded project or in the canonical repository/vault that already governs it.
 
