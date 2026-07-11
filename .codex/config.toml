@@ -1,3 +1,6 @@
+# Project-level defaults for this repository.
+# Named profiles belong in CODEX_HOME; see examples/codex-home/ and docs/codex-setup.md.
+
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
@@ -9,5 +12,4 @@ inherit = "core"
 
 model_reasoning_effort = "medium"
 model_reasoning_summary = "concise"
-
 project_doc_max_bytes = 32768
