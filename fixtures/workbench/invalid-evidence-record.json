@@ -1,0 +1,8 @@
+{
+  "title": "Missing source evidence",
+  "sources": ["not-a-url"],
+  "findings": [],
+  "confidence": "certain",
+  "uncertainty": [],
+  "recommended_action": "Guess"
+}
