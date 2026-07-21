@@ -1,0 +1,10 @@
+{
+  "title": "Synthetic bounded proposal",
+  "objective": "Improve deterministic validation",
+  "authority": "primary",
+  "evidence": ["fixtures/workbench/valid-task-packet.json"],
+  "allowed_scope": ["scripts/"],
+  "blocked_scope": ["main", "external services"],
+  "decision": "pending",
+  "next_action": "Review the proposal"
+}

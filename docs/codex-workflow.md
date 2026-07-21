@@ -1,80 +1,34 @@
 # Codex Workflow
 
-## Recommended daily Codex loop
+## Operating loop
 
-1. Start with a clear task.
-2. Ask Codex to inspect relevant files before editing.
-3. Have Codex summarize the intended change.
-4. Approve only a small, reviewable edit.
-5. Run the narrowest relevant validation.
-6. Review the diff before committing.
-7. Record reusable prompts or workflow improvements.
+1. Use ChatGPT to clarify the outcome and produce a task packet when the work is non-trivial.
+2. Start Codex in the target repository, not in the harness workbench unless you are testing the harness itself.
+3. Ask Codex to inspect the active instructions and relevant files before editing.
+4. Keep the change bounded, run the narrowest relevant validation, and review the diff.
+5. Return changed files and evidence to ChatGPT only for final synthesis or QA.
 
-## First successful setup
+## Read-only inspection
 
-Codex was verified from the repo root and confirmed it loaded the repo `AGENTS.md` instructions and `.codex/config.toml` configuration.
+Use a real read-only profile only after the local smoke check confirms the active configuration.
 
-## Read-only inspection workflow
-
-Use read-only mode when exploring unfamiliar repositories or testing prompts.
-
-```bash
-codex --profile readonly
+```powershell
+$env:CODEX_HOME = "$HOME\.codex-harness"
+codex --profile readonly "Inspect this repository. Identify entry points, validation commands, risks, and active instructions. Do not edit files."
 ```
 
-Suggested prompt:
+The example profile files in `examples/codex-home/` are installation templates, not active configuration by themselves.
+
+## Reversible implementation
 
 ```text
-Inspect this repository in read-only mode. Explain what it does, identify main entry points, find test/build/lint commands, and list risky areas that should require approval. Do not edit files.
+Implement this task packet. Inspect the authoritative inputs first. Keep the diff limited to the stated scope. Run each acceptance check that is available. Do not claim completion without changed-file and validation evidence.
 ```
 
-## Small edit workflow
+## Review
 
-Use normal workbench mode for small, reversible changes.
+Review serious issues only: contract breaks, correctness regressions, security/privacy exposure, destructive behavior, and missing validation. Ignore ordinary style preferences.
 
-```text
-Make this small change: <task>. Inspect relevant files first, summarize the planned edit, keep the diff minimal, run narrow validation, and summarize changed files and remaining risk.
-```
+## Record a reusable improvement
 
-## Review workflow
-
-Use Codex review prompts for serious issues only:
-
-- correctness regressions
-- security issues
-- missing tests
-- API or contract breaks
-- data loss risk
-- error handling gaps
-
-Avoid style nitpicks unless formatting violates configured tooling.
-
-## When to use careful mode
-
-Use careful mode for high-risk debugging, complex refactors, or tasks involving ambiguous behavior.
-
-```bash
-codex --profile careful
-```
-
-## When not to use Codex
-
-Do not use Codex for:
-
-- secrets handling without strict controls
-- production deployment changes without review
-- destructive shell operations
-- legal, medical, or financial decisions
-- broad rewrites without tests
-- tasks where requirements are unknown
-
-## What to record after each useful workflow
-
-Record:
-
-- prompt used
-- repo/context
-- what worked
-- what failed
-- validation command
-- whether the workflow should become a template
+A workflow becomes reusable only when it has succeeded on at least three real tasks, reduces correction burden, and has an observable verification method. Record the durable pattern in the appropriate contract or documentation file—not as a transcript.

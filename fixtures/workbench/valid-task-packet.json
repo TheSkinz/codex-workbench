@@ -1,0 +1,10 @@
+{
+  "objective": "Review a public-safe documentation proposal",
+  "execution_surface": "codex",
+  "authority_lane": "read-only",
+  "acceptance_checks": ["Return evidence and no edits"],
+  "deliverables": ["Review summary"],
+  "loop": "review",
+  "run_mode": "preview",
+  "handoff_status": "ready"
+}

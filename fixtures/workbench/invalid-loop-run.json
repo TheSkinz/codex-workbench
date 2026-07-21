@@ -1,0 +1,13 @@
+{
+  "run_id": "fixture-invalid-loop",
+  "loop": "capture",
+  "result": "failed",
+  "status": "ok",
+  "error_count": "zero",
+  "selected_input": null,
+  "touched_paths": "none",
+  "evidence": [],
+  "next_action": "",
+  "next_action_type": "wait",
+  "unexpected": true
+}

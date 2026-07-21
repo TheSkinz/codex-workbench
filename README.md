@@ -1,41 +1,80 @@
 # Codex Workbench
 
-This repository is a private workbench for configuring, testing, and documenting Codex workflows.
+A public-safe, versioned operating system for routing, executing, reviewing,
+and improving work through Codex, ChatGPT, Deep Research, GitHub, and connected
+tools.
 
-Use it for:
+This repository is not a private knowledge vault or customer-data store. It
+contains generic industry concepts, synthetic examples, Codex-native skills,
+bounded loops, and deterministic verification patterns.
 
-- testing Codex workflows
-- maintaining reusable prompts
-- experimenting with `AGENTS.md` behavior
-- storing safe Codex config examples
-- documenting setup and rollout steps
+## Architecture boundary
+
+| System | Owns |
+|---|---|
+| Canonical private/domain repository | Private knowledge, operational policy, source history |
+| `leverage` | Generic gates, schemas, evaluation logic, and experiments |
+| This workbench | Public-safe concepts, task packets, routing rules, Codex skills, loop contracts, and setup verification |
+| ChatGPT | Framing, research, route selection, task-packet drafting, evidence-based QA |
+
+Do not use this repository as a copy of private domain instructions. Release
+sanitized runtime packs only through `docs/pack-release.md`.
 
 ## Safety boundary
 
-Do not store secrets, tokens, credentials, API keys, cookies, private keys, production code, customer data, or other private data in this repository.
+Assume this repository may be visible outside your private environment.
 
-This repo should stay lightweight: plain Markdown, TOML, and workflow notes only. Avoid adding dependencies, package managers, generated files, CI/CD automation, or build systems unless there is a specific reason and the change is reviewed first.
+Never store customer information, internal rates, operational records, credentials, tokens, private source documents, proprietary reference packs, or personal data here. Keep public-safe examples generic.
 
-## Suggested use
+## Start here
 
-1. Clone the repo locally.
-2. Open it with Codex CLI or the Codex IDE extension.
-3. Start in read-only mode when testing new prompts.
-4. Use the prompt templates in `docs/prompt-templates.md`.
-5. Record useful workflow improvements in `docs/codex-workflow.md`.
+1. Read `AGENTS.md` and `docs/system/operating-model.md`.
+2. Use `chatgpt/TASK-PACKET-TEMPLATE.md` for work that crosses a tool boundary.
+3. Invoke the relevant repo-local skill from `.agents/skills/`.
+4. Preview a loop with `python scripts/loop_preview.py --loop <name>`.
+5. Run one bounded loop with `python scripts/workbench_run.py --loop <name>`.
+6. Run `python scripts/workbench_check.py --self-test` before reporting completion.
+7. Use `python scripts/workbench_check.py --json` when a machine-readable error count is needed.
+8. Configure scheduled tasks outside Git using `docs/automations/scheduled-tasks.md`.
 
-## Repository structure
+To exercise the Codex execution adapter safely, use its local fake executor:
+
+```powershell
+python scripts/workbench_execute.py --self-test
+```
+
+Real execution requires a clean non-`main` source checkout. The adapter creates
+an isolated `codex/*` worktree, declares one expected artifact and an exact
+write scope, then rejects missing, empty, no-op, or out-of-scope results before
+reporting a proposal. It preserves the worktree for manual review and does not
+commit, push, or create a PR. The adapter remains experimental and is exercised
+locally with `--fake-codex`; it does not require a live Codex call for tests.
+
+## Repository layout
 
 ```text
 codex-workbench/
-├─ README.md
 ├─ AGENTS.md
-├─ .codex/
-│  ├─ config.toml
-│  ├─ readonly.config.toml
-│  └─ careful.config.toml
-└─ docs/
-   ├─ codex-workflow.md
-   ├─ prompt-templates.md
-   └─ setup-checklist.md
+├─ .agents/skills/                 # Codex-native core and loop skills
+├─ .codex/config.toml              # Project defaults only
+├─ chatgpt/                        # Project instructions and task packet template
+├─ contracts/                      # Task, evidence, proposal, and loop contracts
+├─ fixtures/                       # Positive and negative synthetic contract fixtures
+├─ docs/                           # System, loop, routing, setup, and release guidance
+├─ knowledge/                      # Sanitized concepts and synthetic examples
+├─ workbench/                      # Inbox, proposals, reviews, research, local state
+├─ examples/codex-home/            # Explicit CODEX_HOME profile examples
+└─ scripts/                        # Setup, validator, loop preview, and runner
 ```
+
+## Design rules
+
+- One canonical owner per kind of information.
+- Prefer a small task packet over a large context dump.
+- Treat test output, diffs, and source links as completion evidence.
+- Use the least-powerful tool that can complete the task safely.
+- Agentic loop writes use isolated worktrees or reviewable branches.
+- Deterministic checks must work without models, network, or paid APIs.
+- The validator covers the complete authored public scope and excludes ignored runtime state.
+- Receipts under `workbench/.state/` are telemetry only, never canonical evidence.
+- Do not package a plugin until the repo-local workflow has real-use evidence.

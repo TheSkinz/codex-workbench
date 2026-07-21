@@ -1,0 +1,6 @@
+# Copy to your CODEX_HOME directory only when you intentionally want
+# an isolated Codex home for harness testing. Do not place personal tokens
+# or private workspace configuration in this repository.
+
+model_reasoning_effort = "medium"
+model_reasoning_summary = "concise"
