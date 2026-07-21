@@ -2,7 +2,9 @@
 
 The prototype contains five bounded agentic loops plus a deterministic health
 check. Each loop has a skill, a runbook, a one-item selection rule, a safe
-no-op result, and a handoff contract.
+no-op result, and a handoff contract. Capture, review, and research can be
+passed to the experimental isolated-worktree executor; drift and consolidation
+remain preview/skill-driven until their write contracts are implemented.
 
 | Loop | Default trigger | Output |
 |---|---|---|

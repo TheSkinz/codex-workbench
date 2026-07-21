@@ -23,13 +23,15 @@ status result.
 
 It checks:
 
-- JSON contract and fixture validity;
+- the checked-in JSON Schemas and every positive/negative fixture against them;
 - skill metadata and required loop sections;
 - public-safety patterns and private paths;
 - broken local Markdown references;
 - ignored local state boundary;
 - current branch/worktree safety when requested;
-- queue counts and clean no-op eligibility.
+- queue counts and clean no-op eligibility;
+- ignored runtime state is excluded from authored-scope validation;
+- receipt fields remain contract-consistent when telemetry is present.
 
 Use:
 

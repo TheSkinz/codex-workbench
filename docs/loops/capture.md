@@ -17,7 +17,7 @@ remove the inbox source. A proposal may recommend a later knowledge update.
 
 ## Stop and no-op rules
 
-No eligible inbox file is a successful `no-op`. Missing source authority,
+No eligible inbox file produces a successful `no-op`. Missing source authority,
 private material, or ambiguous ownership produces `blocked` with evidence.
 
 ## Validation and handoff

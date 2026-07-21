@@ -34,7 +34,8 @@ Never store customer information, internal rates, operational records, credentia
 4. Preview a loop with `python scripts/loop_preview.py --loop <name>`.
 5. Run one bounded loop with `python scripts/workbench_run.py --loop <name>`.
 6. Run `python scripts/workbench_check.py --self-test` before reporting completion.
-7. Configure scheduled tasks outside Git using `docs/automations/scheduled-tasks.md`.
+7. Use `python scripts/workbench_check.py --json` when a machine-readable error count is needed.
+8. Configure scheduled tasks outside Git using `docs/automations/scheduled-tasks.md`.
 
 To exercise the Codex execution adapter safely, use its local fake executor:
 
@@ -43,8 +44,11 @@ python scripts/workbench_execute.py --self-test
 ```
 
 Real execution requires a clean non-`main` source checkout. The adapter creates
-an isolated `codex/*` worktree, validates the result, and preserves the worktree
-for manual review; it does not commit, push, or create a PR.
+an isolated `codex/*` worktree, declares one expected artifact and an exact
+write scope, then rejects missing, empty, no-op, or out-of-scope results before
+reporting a proposal. It preserves the worktree for manual review and does not
+commit, push, or create a PR. The adapter remains experimental and is exercised
+locally with `--fake-codex`; it does not require a live Codex call for tests.
 
 ## Repository layout
 
@@ -55,6 +59,7 @@ codex-workbench/
 ├─ .codex/config.toml              # Project defaults only
 ├─ chatgpt/                        # Project instructions and task packet template
 ├─ contracts/                      # Task, evidence, proposal, and loop contracts
+├─ fixtures/                       # Positive and negative synthetic contract fixtures
 ├─ docs/                           # System, loop, routing, setup, and release guidance
 ├─ knowledge/                      # Sanitized concepts and synthetic examples
 ├─ workbench/                      # Inbox, proposals, reviews, research, local state
@@ -70,4 +75,6 @@ codex-workbench/
 - Use the least-powerful tool that can complete the task safely.
 - Agentic loop writes use isolated worktrees or reviewable branches.
 - Deterministic checks must work without models, network, or paid APIs.
+- The validator covers the complete authored public scope and excludes ignored runtime state.
+- Receipts under `workbench/.state/` are telemetry only, never canonical evidence.
 - Do not package a plugin until the repo-local workflow has real-use evidence.

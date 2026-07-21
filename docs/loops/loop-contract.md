@@ -14,9 +14,12 @@ Every loop must document these fields before implementation:
 ## Run result
 
 The machine-readable result uses `contracts/loop-run.schema.json` and contains
-the run identifier, loop name, result, selected input, touched paths, evidence,
-and next action. Results are valid when they report `no-op`, `proposal`,
-`committed`, `blocked`, or `failed` honestly.
+the run identifier, loop name, result, normalized status, error count, selected
+input, touched paths, evidence, next action, and next-action type. The result
+and status must agree; failed results require a positive error count, while
+other results require zero errors. The next-action type must be valid for the
+result. Results are valid when they report `no-op`, `proposal`, `committed`,
+`blocked`, or `failed` honestly.
 
 ## Write boundary
 
@@ -28,10 +31,10 @@ or mutate `main` unattended.
 ## Local runner
 
 Use `scripts/workbench_run.py --loop <name>` to execute the bounded preview
-adapter consistently. It writes only an ignored receipt under
-`workbench/.state/receipts/`; use `--no-receipt` for stdout-only behavior. The
-runner does not call a model, access the network, promote artifacts, or create a
-branch/PR.
+adapter consistently. It writes only an ignored telemetry receipt under `workbench/.state/receipts/`;
+the receipt is marked `telemetry: true` and is not canonical evidence. Use
+`--no-receipt` for stdout-only behavior. The runner does not call a model,
+access the network, promote artifacts, or create a branch/PR.
 
 ## Execution adapter
 

@@ -6,8 +6,8 @@ Explicit `$workbench-research` invocation or a scheduled public-research task.
 
 ## Inputs and selection
 
-Read one research brief from `workbench/inbox/` or a named knowledge gap.
-Research only public sources and process one brief per run.
+Read one research brief from `workbench/inbox/` or a named knowledge gap under
+`knowledge/`. Research only public sources and process one brief per run.
 
 ## Allowed writes
 
