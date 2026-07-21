@@ -11,6 +11,8 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from loop_contract import make_outcome
+
 
 LOOPS = ("capture", "review", "research", "drift", "consolidation", "health")
 
@@ -19,7 +21,7 @@ def candidates(path: Path, research_only: bool = False) -> list[Path]:
     if not path.exists():
         return []
     result = []
-    for item in sorted(path.glob("*.md")):
+    for item in sorted(path.rglob("*.md")):
         if item.name.lower() == "readme.md":
             continue
         if research_only and "research-brief" not in item.read_text(encoding="utf-8").lower():
@@ -28,36 +30,91 @@ def candidates(path: Path, research_only: bool = False) -> list[Path]:
     return result
 
 
-def result(loop: str, status: str, selected: str | None, evidence: list[str], next_action: str, touched: list[str] | None = None) -> dict:
-    return {
-        "run_id": datetime.now(timezone.utc).strftime("preview-%Y%m%dT%H%M%SZ"),
-        "loop": loop,
-        "result": status,
-        "selected_input": selected,
-        "touched_paths": touched or [],
-        "evidence": evidence,
-        "next_action": next_action,
-    }
+def combined_candidates(root: Path, directories: tuple[str, ...]) -> list[Path]:
+    items: list[Path] = []
+    for directory in directories:
+        items.extend(candidates(root / directory))
+    return sorted(set(items), key=lambda path: path.relative_to(root).as_posix())
 
 
-def git_state(root: Path) -> tuple[str | None, bool]:
+def knowledge_gaps(root: Path) -> list[Path]:
+    result = []
+    for item in candidates(root / "knowledge"):
+        text = item.read_text(encoding="utf-8").lower()
+        if "knowledge gap" in text or "research gap" in text or item.stem.endswith("-gap"):
+            result.append(item)
+    return result
+
+
+def result(
+    loop: str,
+    status: str,
+    selected: str | None,
+    evidence: list[str],
+    next_action: str,
+    touched: list[str] | None = None,
+    next_action_type: str | None = None,
+) -> dict:
+    return make_outcome(
+        run_id=datetime.now(timezone.utc).strftime("preview-%Y%m%dT%H%M%SZ"),
+        loop=loop,
+        result=status,
+        selected_input=selected,
+        touched_paths=touched,
+        evidence=evidence,
+        next_action=next_action,
+        next_action_type=next_action_type,
+    )
+
+
+def git_state(root: Path) -> tuple[str | None, bool | None]:
     try:
-        branch = subprocess.run(["git", "-C", str(root), "branch", "--show-current"], capture_output=True, text=True, check=True).stdout.strip()
-        dirty = bool(subprocess.run(["git", "-C", str(root), "status", "--porcelain"], capture_output=True, text=True, check=True).stdout.strip())
+        branch = subprocess.run(
+            ["git", "-C", str(root), "branch", "--show-current"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        dirty = bool(subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip())
         return branch, dirty
     except (OSError, subprocess.CalledProcessError):
-        return None, False
+        return None, None
 
 
 def preview(root: Path, loop: str, require_clean: bool) -> dict:
     if loop == "health":
-        check = subprocess.run([sys.executable, str(root / "scripts" / "workbench_check.py")], capture_output=True, text=True)
-        status = "no-op" if check.returncode == 0 else "failed"
-        next_action = "Continue with the next bounded loop" if check.returncode == 0 else "Fix reported validation errors before continuing"
-        return result(loop, status, None, [check.stdout.strip() or "validator returned no output"], next_action)
+        check = subprocess.run(
+            [sys.executable, str(root / "scripts" / "workbench_check.py"), "--json"],
+            capture_output=True,
+            text=True,
+        )
+        try:
+            payload = json.loads(check.stdout)
+            error_count = int(payload.get("error_count", 0))
+        except (ValueError, TypeError, json.JSONDecodeError):
+            error_count = 1
+        if check.returncode != 0 and error_count == 0:
+            error_count = 1
+        status = "no-op" if check.returncode == 0 and error_count == 0 else "failed"
+        next_action = "Continue with the next bounded loop" if status == "no-op" else "Fix reported validation errors before continuing"
+        return result(
+            loop,
+            status,
+            None,
+            [check.stdout.strip() or "validator returned no output"],
+            next_action,
+            next_action_type="continue" if status == "no-op" else "resolve",
+        )
 
     if require_clean or loop in {"drift", "consolidation"}:
         branch, dirty = git_state(root)
+        if branch is None:
+            return result(loop, "blocked", None, ["Git metadata is unavailable"], "Run from a Git repository", next_action_type="run")
         if branch == "main":
             return result(loop, "blocked", None, ["Current branch is main"], "Use a clean isolated worktree on a proposal branch")
         if dirty:
@@ -71,23 +128,24 @@ def preview(root: Path, loop: str, require_clean: bool) -> dict:
         return result(loop, "proposal", selected, ["One inbox item selected by path order"], "Create one classified proposal after review", ["workbench/proposals/<slug>.md"])
 
     if loop == "review":
-        items = candidates(root / "workbench" / "proposals")
+        items = combined_candidates(root, ("workbench/proposals", "workbench/reviews", "knowledge"))
         if not items:
-            return result(loop, "no-op", None, ["No eligible proposals"], "Wait for a proposal")
+            return result(loop, "no-op", None, ["No eligible proposals, reviews, or named knowledge records"], "Wait for a proposal or named record")
         selected = items[0].relative_to(root).as_posix()
-        return result(loop, "proposal", selected, ["One proposal selected by path order"], "Create one evidence-backed review record", ["workbench/reviews/<slug>.md"])
+        return result(loop, "proposal", selected, ["One proposal, review, or named knowledge record selected by path order"], "Create one evidence-backed review record", ["workbench/reviews/<slug>.md"])
 
     if loop == "research":
-        items = candidates(root / "workbench" / "inbox", research_only=True)
+        items = candidates(root / "workbench" / "inbox", research_only=True) + knowledge_gaps(root)
+        items = sorted(set(items), key=lambda path: path.relative_to(root).as_posix())
         if not items:
-            return result(loop, "no-op", None, ["No research briefs"], "Wait for a public research brief")
+            return result(loop, "no-op", None, ["No research briefs or named knowledge gaps"], "Wait for a public research brief or named knowledge gap")
         selected = items[0].relative_to(root).as_posix()
-        return result(loop, "proposal", selected, ["One research brief selected by path order"], "Create one cited research record", ["workbench/research/<slug>.md"])
+        return result(loop, "proposal", selected, ["One research brief or named knowledge gap selected by path order"], "Create one cited research record", ["workbench/research/<slug>.md"])
 
     if loop == "drift":
-        return result(loop, "no-op", None, ["Preview does not invent a drift finding"], "Run the drift skill to compare exact source lines")
+        return result(loop, "no-op", None, ["Preview does not invent a drift finding"], "Run the drift skill to compare exact source lines", next_action_type="continue")
 
-    return result(loop, "no-op", None, ["No consolidation candidate selected by the preview"], "Run the consolidation skill with a named candidate")
+    return result(loop, "no-op", None, ["No consolidation candidate selected by the preview"], "Run the consolidation skill with a named candidate", next_action_type="run")
 
 
 def self_test() -> None:
@@ -100,6 +158,14 @@ def self_test() -> None:
         outcome = preview(root, "capture", False)
         if outcome["result"] != "proposal" or outcome["selected_input"] != "workbench/inbox/2026-01-01-synthetic-handoff.md":
             raise AssertionError(f"one-item selection failed: {outcome}")
+        (root / "knowledge").mkdir()
+        (root / "knowledge" / "synthetic-gap.md").write_text("# Knowledge gap\n", encoding="utf-8")
+        research = preview(root, "research", False)
+        if research["selected_input"] != "knowledge/synthetic-gap.md":
+            raise AssertionError(f"named knowledge gap selection failed: {research}")
+        blocked = preview(root, "capture", True)
+        if blocked["result"] != "blocked" or blocked["status"] != "blocked":
+            raise AssertionError(f"missing Git metadata was not blocked: {blocked}")
 
 
 def main() -> int:

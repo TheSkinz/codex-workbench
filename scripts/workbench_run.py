@@ -16,6 +16,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
+from loop_contract import validate_outcome  # noqa: E402
 from loop_preview import LOOPS, preview  # noqa: E402
 
 
@@ -29,10 +30,13 @@ def receipt_path(root: Path, run_id: str) -> Path:
 
 
 def write_receipt(root: Path, outcome: dict) -> Path:
+    validate_outcome(outcome)
     destination = receipt_path(root, outcome["run_id"])
     destination.parent.mkdir(parents=True, exist_ok=True)
+    receipt = dict(outcome)
+    receipt["telemetry"] = True
     temporary = destination.with_suffix(".tmp")
-    temporary.write_text(json.dumps(outcome, indent=2) + "\n", encoding="utf-8")
+    temporary.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     temporary.replace(destination)
     return destination
 
@@ -43,8 +47,9 @@ def execute(root: Path, loop: str, require_clean: bool, persist: bool = True) ->
     outcome = preview(root, loop, require_clean)
     outcome["run_id"] = new_run_id(loop)
     if not persist:
+        validate_outcome(outcome)
         return outcome, None
-    destination = write_receipt(root, outcome)
+    destination = receipt_path(root, outcome["run_id"])
     outcome.setdefault("notes", []).append(
         f"local_receipt={destination.relative_to(root).as_posix()}"
     )
@@ -72,13 +77,24 @@ def self_test() -> None:
 
         selected, selected_receipt = execute(root, "capture", False)
         assert selected["result"] == "proposal", selected
+        assert selected["status"] == "ok" and selected["error_count"] == 0, selected
         assert selected["selected_input"] == "workbench/inbox/2026-01-01-synthetic-handoff.md", selected
         assert selected_receipt and selected_receipt.exists()
-        assert json.loads(selected_receipt.read_text(encoding="utf-8")) == selected
+        receipt = json.loads(selected_receipt.read_text(encoding="utf-8"))
+        assert receipt["telemetry"] is True and receipt["status"] == selected["status"], receipt
 
         no_op, no_op_receipt = execute(root, "review", False)
-        assert no_op["result"] == "no-op", no_op
+        assert no_op["result"] == "no-op" and no_op["next_action_type"] == "wait", no_op
         assert no_op_receipt and no_op_receipt.exists()
+
+        invalid = dict(no_op)
+        invalid["status"] = "failed"
+        try:
+            validate_outcome(invalid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("contradictory receipt result was accepted")
 
         (root / ".gitignore").write_text("workbench/.state/\n", encoding="utf-8")
         (root / "README.md").write_text("# Synthetic pilot\n", encoding="utf-8")
