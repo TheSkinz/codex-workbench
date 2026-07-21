@@ -2,16 +2,21 @@
 
 ## Role
 
-Use this project as a **cross-tool planning and verification adapter**. It converts an ambiguous request into a small, evidence-aware task packet for the right execution surface.
+Use this project as a **cross-tool planning and verification layer** for the
+Codex Workbench. It converts ambiguous requests into small, evidence-aware
+task packets and routes bounded work to the right execution surface.
 
-It is not a source of operational truth, a transcript archive, a vault replacement, or a place to maintain private domain knowledge.
+It is not a source of private operational truth, a transcript archive, or a
+vault replacement. Public-safe concepts and synthetic examples belong in the
+workbench; private domain knowledge does not.
 
 ## Ground truth
 
 - Treat a supplied repository file, attached source, test result, or connector read as evidence.
 - Treat conversation memory as context, not proof of current state.
 - If current repository or vault state matters, request or retrieve the specific source; do not infer it from an earlier discussion.
-- Never copy domain knowledge into this project merely to make it convenient.
+- Never copy private domain knowledge into this project merely to make it convenient.
+- Use `knowledge/` only for sanitized concepts, public sources, and synthetic examples.
 
 ## Working method
 
@@ -45,4 +50,7 @@ For a non-trivial request, use these headings:
 4. Risks or blockers
 5. Handoff / next action
 
-Be concise by default. Do not create a new maintenance process, review queue, dashboard, or recurring task unless the request explicitly requires one.
+Be concise by default. Use the workbench loop contracts when the request
+explicitly requires capture, review, research, drift, consolidation, or health
+work. Do not create personal schedules or private transcript archives in the
+repository.

@@ -37,3 +37,5 @@ Run the script from this workbench and point it at the target repository:
 Pass `-Profile <name>` only after setting `CODEX_HOME` explicitly. The script uses an ephemeral, non-interactive Codex session; it does not make an example profile active on its own.
 
 Review the report for active `AGENTS.md` files, sandbox mode, approval policy, network access, writable roots, and instruction conflicts. A configuration is trusted only after its real runtime report matches the intended boundary.
+
+The smoke check defaults to `gpt-5.5` for compatibility with current Codex CLI installations. If the local CLI exposes a different supported model, override it with `-Model <model>`.

@@ -1,19 +1,24 @@
-# ChatGPT + Codex Harness Workbench
+# Codex Workbench
 
-A small, versioned adapter for routing work between ChatGPT, Deep Research, Codex, GitHub, and connected tools.
+A public-safe, versioned operating system for routing, executing, reviewing,
+and improving work through Codex, ChatGPT, Deep Research, GitHub, and connected
+tools.
 
-This repository is **not** a knowledge vault, a customer-data store, or a generic agent platform. It exists to keep the cross-tool layer small, testable, and portable.
+This repository is not a private knowledge vault or customer-data store. It
+contains generic industry concepts, synthetic examples, Codex-native skills,
+bounded loops, and deterministic verification patterns.
 
 ## Architecture boundary
 
 | System | Owns |
 |---|---|
-| Canonical vault / domain repository | Domain knowledge, operational policy, source history |
+| Canonical private/domain repository | Private knowledge, operational policy, source history |
 | `leverage` | Generic gates, schemas, evaluation logic, and experiments |
-| This workbench | ChatGPT task packets, routing rules, Codex configuration examples, setup verification |
+| This workbench | Public-safe concepts, task packets, routing rules, Codex skills, loop contracts, and setup verification |
 | ChatGPT | Framing, research, route selection, task-packet drafting, evidence-based QA |
 
-Do not use this repository as a second copy of domain instructions. Release sanitized, minimal runtime packs only through the protocol in `docs/pack-release.md`.
+Do not use this repository as a copy of private domain instructions. Release
+sanitized runtime packs only through `docs/pack-release.md`.
 
 ## Safety boundary
 
@@ -23,23 +28,38 @@ Never store customer information, internal rates, operational records, credentia
 
 ## Start here
 
-1. Add `chatgpt/PROJECT-INSTRUCTIONS.md` to the existing AI Workflow & Agent Architecture Project.
-2. Use `chatgpt/TASK-PACKET-TEMPLATE.md` for any task that crosses a tool boundary.
-3. Configure a target repository with its own `AGENTS.md` and `.codex/config.toml`.
-4. Run `scripts/verify-codex-setup.ps1` with the target repository supplied through `-WorkingDirectory` before trusting a configuration.
-5. Promote a reusable workflow only after it passes the evaluation rule in `docs/evaluation.md`.
+1. Read `AGENTS.md` and `docs/system/operating-model.md`.
+2. Use `chatgpt/TASK-PACKET-TEMPLATE.md` for work that crosses a tool boundary.
+3. Invoke the relevant repo-local skill from `.agents/skills/`.
+4. Preview a loop with `python scripts/loop_preview.py --loop <name>`.
+5. Run one bounded loop with `python scripts/workbench_run.py --loop <name>`.
+6. Run `python scripts/workbench_check.py --self-test` before reporting completion.
+7. Configure scheduled tasks outside Git using `docs/automations/scheduled-tasks.md`.
+
+To exercise the Codex execution adapter safely, use its local fake executor:
+
+```powershell
+python scripts/workbench_execute.py --self-test
+```
+
+Real execution requires a clean non-`main` source checkout. The adapter creates
+an isolated `codex/*` worktree, validates the result, and preserves the worktree
+for manual review; it does not commit, push, or create a PR.
 
 ## Repository layout
 
 ```text
 codex-workbench/
 ├─ AGENTS.md
+├─ .agents/skills/                 # Codex-native core and loop skills
 ├─ .codex/config.toml              # Project defaults only
 ├─ chatgpt/                        # Project instructions and task packet template
-├─ contracts/                      # Portable task-packet contract
-├─ docs/                           # Routing, setup, evaluation, and pack-release guidance
+├─ contracts/                      # Task, evidence, proposal, and loop contracts
+├─ docs/                           # System, loop, routing, setup, and release guidance
+├─ knowledge/                      # Sanitized concepts and synthetic examples
+├─ workbench/                      # Inbox, proposals, reviews, research, local state
 ├─ examples/codex-home/            # Explicit CODEX_HOME profile examples
-└─ scripts/verify-codex-setup.ps1  # Runtime configuration smoke check
+└─ scripts/                        # Setup, validator, loop preview, and runner
 ```
 
 ## Design rules
@@ -48,4 +68,6 @@ codex-workbench/
 - Prefer a small task packet over a large context dump.
 - Treat test output, diffs, and source links as completion evidence.
 - Use the least-powerful tool that can complete the task safely.
-- Do not add a connector, plugin, prompt, or process until real use proves its value.
+- Agentic loop writes use isolated worktrees or reviewable branches.
+- Deterministic checks must work without models, network, or paid APIs.
+- Do not package a plugin until the repo-local workflow has real-use evidence.

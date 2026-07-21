@@ -1,0 +1,35 @@
+# Python caches and test/tooling output
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+dist/
+build/
+
+# Logs and local runtime state
+*.log
+.state/
+workbench/.state/
+.codex/logs/
+.codex/sessions/
+
+# Generated reports and evidence packs
+reports/
+workbench/reports/
+**/output/evidence_packs/
+
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+**/auth.json
+**/credentials.json
+**/client_secret*.json
+*.pem
+*.key
+*.p12
+*.pfx

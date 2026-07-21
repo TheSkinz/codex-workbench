@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$WorkingDirectory = (Get-Location).Path,
-    [string]$Profile
+    [string]$Profile,
+    [string]$Model = "gpt-5.5"
 )
 
 $ErrorActionPreference = "Stop"
@@ -13,7 +14,8 @@ Summarize the current instructions and configuration you loaded. Report active A
 
 Push-Location $WorkingDirectory
 try {
-    $arguments = @("exec", "--ephemeral", "--ask-for-approval", "never")
+    # Current Codex CLI uses --sandbox read-only; --ask-for-approval was removed.
+    $arguments = @("exec", "--ephemeral", "--sandbox", "read-only", "--model", $Model)
     if ($Profile) {
         $arguments += @("--profile", $Profile)
     }
