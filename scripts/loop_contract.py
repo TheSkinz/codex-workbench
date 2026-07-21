@@ -15,7 +15,7 @@ STATUS_BY_RESULT = {
     "failed": "failed",
 }
 ACTION_TYPES_BY_RESULT = {
-    "proposal": {"review", "decide"},
+    "proposal": {"review", "decide", "run"},
     "committed": {"continue", "review"},
     "no-op": {"wait", "run", "continue"},
     "blocked": {"resolve", "run", "wait"},

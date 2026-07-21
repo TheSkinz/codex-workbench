@@ -125,14 +125,14 @@ def preview(root: Path, loop: str, require_clean: bool) -> dict:
         if not items:
             return result(loop, "no-op", None, ["No eligible inbox items"], "Wait for the next public-safe handoff")
         selected = items[0].relative_to(root).as_posix()
-        return result(loop, "proposal", selected, ["One inbox item selected by path order"], "Create one classified proposal after review", ["workbench/proposals/<slug>.md"])
+        return result(loop, "proposal", selected, ["One inbox item selected by path order"], "Create one classified proposal after review", ["workbench/proposals/<slug>.md"], next_action_type="run")
 
     if loop == "review":
         items = combined_candidates(root, ("workbench/proposals", "workbench/reviews", "knowledge"))
         if not items:
             return result(loop, "no-op", None, ["No eligible proposals, reviews, or named knowledge records"], "Wait for a proposal or named record")
         selected = items[0].relative_to(root).as_posix()
-        return result(loop, "proposal", selected, ["One proposal, review, or named knowledge record selected by path order"], "Create one evidence-backed review record", ["workbench/reviews/<slug>.md"])
+        return result(loop, "proposal", selected, ["One proposal, review, or named knowledge record selected by path order"], "Create one evidence-backed review record", ["workbench/reviews/<slug>.md"], next_action_type="run")
 
     if loop == "research":
         items = candidates(root / "workbench" / "inbox", research_only=True) + knowledge_gaps(root)
@@ -140,7 +140,7 @@ def preview(root: Path, loop: str, require_clean: bool) -> dict:
         if not items:
             return result(loop, "no-op", None, ["No research briefs or named knowledge gaps"], "Wait for a public research brief or named knowledge gap")
         selected = items[0].relative_to(root).as_posix()
-        return result(loop, "proposal", selected, ["One research brief or named knowledge gap selected by path order"], "Create one cited research record", ["workbench/research/<slug>.md"])
+        return result(loop, "proposal", selected, ["One research brief or named knowledge gap selected by path order"], "Create one cited research record", ["workbench/research/<slug>.md"], next_action_type="run")
 
     if loop == "drift":
         return result(loop, "no-op", None, ["Preview does not invent a drift finding"], "Run the drift skill to compare exact source lines", next_action_type="continue")
