@@ -1,0 +1,10 @@
+{
+  "title": "Invalid proposal",
+  "objective": "",
+  "authority": "unknown",
+  "evidence": [7],
+  "allowed_scope": "scripts/",
+  "blocked_scope": [],
+  "decision": "maybe",
+  "unexpected": true
+}

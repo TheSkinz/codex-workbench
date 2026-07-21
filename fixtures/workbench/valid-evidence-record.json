@@ -1,0 +1,9 @@
+{
+  "title": "Synthetic evidence record",
+  "sources": ["https://example.org/reference"],
+  "findings": ["The source supports the bounded recommendation."],
+  "confidence": "medium",
+  "uncertainty": ["The example is synthetic."],
+  "recommended_action": "Review the recommendation before implementation",
+  "retrieved": "2026-07-21"
+}

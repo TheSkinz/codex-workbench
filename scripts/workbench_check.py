@@ -11,67 +11,54 @@ from pathlib import Path
 from typing import Any
 
 
-CONTRACTS = {
-    "task-packet.schema.json": {
-        "objective",
-        "execution_surface",
-        "authority_lane",
-        "acceptance_checks",
-        "deliverables",
-    },
-    "loop-run.schema.json": {
-        "run_id",
-        "loop",
-        "result",
-        "selected_input",
-        "touched_paths",
-        "evidence",
-        "next_action",
-    },
-    "evidence-record.schema.json": {
-        "title",
-        "sources",
-        "findings",
-        "confidence",
-        "uncertainty",
-        "recommended_action",
-    },
-    "proposal.schema.json": {
-        "title",
-        "objective",
-        "authority",
-        "evidence",
-        "allowed_scope",
-        "blocked_scope",
-        "decision",
-    },
+CONTRACTS = (
+    "task-packet.schema.json",
+    "loop-run.schema.json",
+    "evidence-record.schema.json",
+    "proposal.schema.json",
+)
+
+FIXTURE_SCHEMAS = {
+    "task-packet": "task-packet.schema.json",
+    "loop-run": "loop-run.schema.json",
+    "evidence-record": "evidence-record.schema.json",
+    "proposal": "proposal.schema.json",
 }
 
-ENUMS = {
-    "execution_surface": {"chatgpt", "deep-research", "codex", "github", "connected-app", "agent-mode"},
-    "authority_lane": {"read-only", "reversible-implementation", "propose-with-default", "human-gated"},
-    "loop": {"capture", "review", "research", "drift", "consolidation", "health"},
-    "result": {"proposal", "committed", "no-op", "blocked", "failed"},
-    "run_mode": {"preview", "interactive", "scheduled"},
-    "handoff_status": {"ready", "needs-decision", "blocked", "complete"},
-    "confidence": {"high", "medium", "low", "unknown"},
-    "authority": {"primary", "supporting", "context-only", "unverified"},
-    "decision": {"pending", "approved", "rejected", "blocked"},
-}
-
+# This is the complete authored public scope. Git metadata, ignored runtime
+# state, caches, reports, and generated evidence are intentionally excluded.
 PUBLIC_ROOTS = (
+    ".agents",
+    ".codex",
+    ".gitattributes",
+    ".gitignore",
     "AGENTS.md",
     "README.md",
-    ".codex",
-    ".agents",
+    "chatgpt",
     "contracts",
     "docs",
-    "knowledge",
-    "workbench",
-    "scripts",
-    "chatgpt",
     "examples",
+    "fixtures",
+    "knowledge",
+    "scripts",
+    "workbench",
 )
+IGNORED_PARTS = {
+    ".git",
+    ".state",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "reports",
+    "coverage",
+    "dist",
+    "build",
+    "evidence_packs",
+}
+IGNORED_SUFFIXES = {".pyc", ".pyo", ".log", ".tmp", ".bak"}
 LOOP_DOCS = ("capture", "review", "research", "drift", "consolidation", "health")
 PRIVATE_PATTERNS = (
     re.compile(r"[A-Za-z]:\\Users\\[A-Za-z0-9._-]+", re.IGNORECASE),
@@ -86,14 +73,23 @@ def rel(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
 
+def is_ignored_runtime(path: Path, root: Path) -> bool:
+    relative = path.relative_to(root)
+    return bool(set(relative.parts) & IGNORED_PARTS) or path.suffix.lower() in IGNORED_SUFFIXES
+
+
 def public_files(root: Path) -> list[Path]:
     paths: list[Path] = []
     for entry in PUBLIC_ROOTS:
         path = root / entry
         if path.is_file():
-            paths.append(path)
+            if not is_ignored_runtime(path, root):
+                paths.append(path)
         elif path.is_dir():
-            paths.extend(p for p in path.rglob("*") if p.is_file() and ".git" not in p.parts)
+            paths.extend(
+                p for p in path.rglob("*")
+                if p.is_file() and not is_ignored_runtime(p, root)
+            )
     return sorted(set(paths))
 
 
@@ -101,59 +97,154 @@ def error(errors: list[str], path: str, message: str) -> None:
     errors.append(f"{path}: {message}")
 
 
-def parse_json(path: Path, errors: list[str]) -> dict[str, Any] | None:
+def parse_json(path: Path, errors: list[str]) -> Any | None:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         error(errors, path.as_posix(), f"invalid JSON ({exc})")
         return None
+
+
+def _type_matches(value: Any, expected: str) -> bool:
+    return {
+        "object": isinstance(value, dict),
+        "array": isinstance(value, list),
+        "string": isinstance(value, str),
+        "boolean": isinstance(value, bool),
+        "null": value is None,
+        "integer": isinstance(value, int) and not isinstance(value, bool),
+        "number": isinstance(value, (int, float)) and not isinstance(value, bool),
+    }.get(expected, True)
+
+
+def _json_pointer(root_schema: dict[str, Any], pointer: str) -> dict[str, Any]:
+    if not pointer.startswith("#/"):
+        raise ValueError(f"unsupported schema reference: {pointer}")
+    value: Any = root_schema
+    for token in pointer[2:].split("/"):
+        value = value[token.replace("~1", "/").replace("~0", "~")]
     if not isinstance(value, dict):
-        error(errors, path.as_posix(), "top-level JSON value must be an object")
-        return None
+        raise ValueError(f"schema reference is not an object: {pointer}")
     return value
 
 
-def validate_object(value: dict[str, Any], required: set[str], name: str, errors: list[str]) -> None:
-    missing = sorted(required - value.keys())
-    for field in missing:
-        error(errors, name, f"missing required field '{field}'")
-    for field, allowed in ENUMS.items():
-        if field in value and value[field] not in allowed:
-            error(errors, name, f"invalid {field} value {value[field]!r}")
-    for field in ("acceptance_checks", "deliverables", "evidence", "sources", "findings"):
-        if field in value and (not isinstance(value[field], list) or (field in {"acceptance_checks", "deliverables", "evidence", "sources", "findings"} and not value[field])):
-            error(errors, name, f"{field} must be a non-empty array")
+def validate_schema_value(
+    value: Any,
+    schema: dict[str, Any],
+    name: str,
+    root_schema: dict[str, Any] | None = None,
+) -> list[str]:
+    """Validate the JSON Schema subset used by the checked-in contracts."""
+
+    root_schema = root_schema or schema
+    if "$ref" in schema:
+        return validate_schema_value(value, _json_pointer(root_schema, schema["$ref"]), name, root_schema)
+
+    errors: list[str] = []
+    if "type" in schema:
+        expected_types = schema["type"] if isinstance(schema["type"], list) else [schema["type"]]
+        if not any(_type_matches(value, expected) for expected in expected_types):
+            error(errors, name, f"expected type {schema['type']!r}, got {type(value).__name__}")
+            return errors
+    if "enum" in schema and value not in schema["enum"]:
+        error(errors, name, f"value {value!r} is not in enum")
+    if "const" in schema and value != schema["const"]:
+        error(errors, name, f"value {value!r} does not equal const {schema['const']!r}")
+
+    if isinstance(value, dict):
+        for required in schema.get("required", []):
+            if required not in value:
+                error(errors, name, f"missing required field '{required}'")
+        properties = schema.get("properties", {})
+        if schema.get("additionalProperties") is False:
+            for key in sorted(set(value) - set(properties)):
+                error(errors, f"{name}.{key}", "unexpected property")
+        for key, child_schema in properties.items():
+            if key in value:
+                errors.extend(validate_schema_value(value[key], child_schema, f"{name}.{key}", root_schema))
+        additional = schema.get("additionalProperties")
+        if isinstance(additional, dict):
+            for key in sorted(set(value) - set(properties)):
+                errors.extend(validate_schema_value(value[key], additional, f"{name}.{key}", root_schema))
+    if isinstance(value, list):
+        minimum = schema.get("minItems")
+        if minimum is not None and len(value) < minimum:
+            error(errors, name, f"array must contain at least {minimum} item(s)")
+        if "maxItems" in schema and len(value) > schema["maxItems"]:
+            error(errors, name, f"array must contain at most {schema['maxItems']} item(s)")
+        if isinstance(schema.get("items"), dict):
+            for index, item in enumerate(value):
+                errors.extend(validate_schema_value(item, schema["items"], f"{name}[{index}]", root_schema))
+    if isinstance(value, str):
+        if "minLength" in schema and len(value) < schema["minLength"]:
+            error(errors, name, f"string must contain at least {schema['minLength']} character(s)")
+        if "maxLength" in schema and len(value) > schema["maxLength"]:
+            error(errors, name, f"string must contain at most {schema['maxLength']} character(s)")
+        if "pattern" in schema and re.search(schema["pattern"], value) is None:
+            error(errors, name, f"value does not match pattern {schema['pattern']!r}")
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if "minimum" in schema and value < schema["minimum"]:
+            error(errors, name, f"value must be at least {schema['minimum']}")
+    if "allOf" in schema:
+        for child_schema in schema["allOf"]:
+            errors.extend(validate_schema_value(value, child_schema, name, root_schema))
+    if "anyOf" in schema:
+        branches = [validate_schema_value(value, child, name, root_schema) for child in schema["anyOf"]]
+        if all(branches):
+            error(errors, name, "value did not match anyOf branches")
+    if "oneOf" in schema:
+        branches = [validate_schema_value(value, child, name, root_schema) for child in schema["oneOf"]]
+        if sum(not branch for branch in branches) != 1:
+            error(errors, name, "value did not match exactly one oneOf branch")
+    return errors
 
 
 def check_contracts(root: Path, errors: list[str]) -> None:
     contracts = root / "contracts"
-    for filename, required in CONTRACTS.items():
+    for filename in CONTRACTS:
         path = contracts / filename
         if not path.exists():
             error(errors, rel(path, root), "required contract is missing")
             continue
         schema = parse_json(path, errors)
-        if schema is None:
+        if not isinstance(schema, dict):
+            error(errors, rel(path, root), "schema must be a JSON object")
             continue
-        schema_required = set(schema.get("required", []))
-        if not required <= schema_required:
-            error(errors, rel(path, root), "schema required fields do not cover the workbench contract")
+        if schema.get("type") != "object" or not isinstance(schema.get("properties"), dict):
+            error(errors, rel(path, root), "schema must define an object with properties")
+        if schema.get("additionalProperties") is not False:
+            error(errors, rel(path, root), "top-level authored contract must prohibit unexpected properties")
 
 
 def check_fixtures(root: Path, errors: list[str]) -> None:
     fixtures = root / "fixtures" / "workbench"
-    expected = {
-        "valid-task-packet.json": CONTRACTS["task-packet.schema.json"],
-        "valid-loop-run.json": CONTRACTS["loop-run.schema.json"],
-    }
-    for filename, required in expected.items():
-        path = fixtures / filename
-        value = parse_json(path, errors)
-        if value is not None:
-            validate_object(value, required, rel(path, root), errors)
-    for filename in ("invalid-task-packet.json", "invalid-evidence-record.json"):
-        if not (fixtures / filename).exists():
-            error(errors, rel(fixtures / filename, root), "negative fixture is missing")
+    schemas: dict[str, dict[str, Any]] = {}
+    for filename in CONTRACTS:
+        schema = parse_json(root / "contracts" / filename, errors)
+        if isinstance(schema, dict):
+            schemas[filename] = schema
+    fixture_files = sorted(fixtures.glob("valid-*.json")) + sorted(fixtures.glob("invalid-*.json"))
+    if not fixture_files:
+        error(errors, rel(fixtures, root), "schema fixture set is empty")
+    for path in fixture_files:
+        prefix, _, suffix = path.stem.partition("-")
+        schema_filename = FIXTURE_SCHEMAS.get(suffix)
+        if schema_filename is None:
+            error(errors, rel(path, root), "fixture name does not identify a known schema")
+            continue
+        schema = schemas.get(schema_filename)
+        if schema is None:
+            continue
+        parse_errors: list[str] = []
+        value = parse_json(path, parse_errors)
+        if parse_errors:
+            errors.extend(parse_errors)
+            continue
+        schema_errors = validate_schema_value(value, schema, rel(path, root))
+        if prefix == "valid" and schema_errors:
+            errors.extend(schema_errors)
+        elif prefix == "invalid" and not schema_errors:
+            error(errors, rel(path, root), "negative fixture unexpectedly passed its JSON Schema")
 
 
 def check_skills(root: Path, errors: list[str]) -> None:
@@ -223,22 +314,9 @@ def run_checks(root: Path) -> list[str]:
 
 def self_test(root: Path) -> list[str]:
     errors: list[str] = []
-    parse_errors: list[str] = []
-    invalid_task = parse_json(root / "fixtures" / "workbench" / "invalid-task-packet.json", parse_errors)
-    errors.extend(parse_errors)
-    if invalid_task is not None:
-        findings: list[str] = []
-        validate_object(invalid_task, CONTRACTS["task-packet.schema.json"], "invalid-task-packet", findings)
-        if not findings:
-            error(errors, "self-test", "invalid task packet did not fail validation")
-    parse_errors = []
-    invalid_evidence = parse_json(root / "fixtures" / "workbench" / "invalid-evidence-record.json", parse_errors)
-    errors.extend(parse_errors)
-    if invalid_evidence is not None:
-        findings = []
-        validate_object(invalid_evidence, CONTRACTS["evidence-record.schema.json"], "invalid-evidence-record", findings)
-        if not findings:
-            error(errors, "self-test", "invalid evidence record did not fail validation")
+    fixture_errors: list[str] = []
+    check_fixtures(root, fixture_errors)
+    errors.extend(fixture_errors)
     if not any(pattern.search("C:\\Users\\example\\private-key") for pattern in PRIVATE_PATTERNS):
         error(errors, "self-test", "private-path detector did not fire")
     return errors

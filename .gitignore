@@ -1,34 +1,49 @@
 # Python caches and test/tooling output
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+**/.pytest_cache/
 .mypy_cache/
+**/.mypy_cache/
 .ruff_cache/
+**/.ruff_cache/
 .coverage
 coverage/
+**/coverage/
 dist/
+**/dist/
 build/
+**/build/
 
-# Logs and local runtime state
+# Logs, temporary files, and local runtime state
 *.log
+*.tmp
+*.bak
 .state/
+**/.state/
 workbench/.state/
 .codex/logs/
 .codex/sessions/
 
 # Generated reports and evidence packs
 reports/
-workbench/reports/
+**/reports/
+generated-reports/
+**/generated-reports/
 **/output/evidence_packs/
+**/evidence_packs/
 
 # Local credentials and environment files
 .env
 .env.*
 !.env.example
+.secrets/
 **/auth.json
 **/credentials.json
 **/client_secret*.json
+*.secret
 *.pem
 *.key
 *.p12

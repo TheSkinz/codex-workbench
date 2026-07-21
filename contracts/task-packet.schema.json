@@ -16,7 +16,7 @@
         "additionalProperties": false,
         "required": ["source", "authority"],
         "properties": {
-          "source": {"type": "string"},
+          "source": {"type": "string", "minLength": 1},
           "authority": {"enum": ["primary", "supporting", "context-only", "unverified"]},
           "notes": {"type": "string"}
         }
@@ -34,10 +34,11 @@
     "deliverables": {"type": "array", "minItems": 1, "items": {"type": "string"}},
     "verification_evidence": {"type": "array", "items": {"type": "string"}},
     "remaining_risks": {"type": "array", "items": {"type": "string"}},
-    "next_action": {"type": "string"},
+    "next_action": {"type": "string", "minLength": 1},
     "loop": {"enum": ["capture", "review", "research", "drift", "consolidation", "health"]},
     "input_scope": {"type": "array", "items": {"type": "string"}},
     "write_scope": {"type": "array", "items": {"type": "string"}},
+    "expected_artifact": {"type": "string", "minLength": 1},
     "run_mode": {"enum": ["preview", "interactive", "scheduled"]},
     "stop_conditions": {"type": "array", "items": {"type": "string"}},
     "handoff_status": {"enum": ["ready", "needs-decision", "blocked", "complete"]}
